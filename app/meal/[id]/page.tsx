@@ -3,12 +3,13 @@ import Image from "next/image";
 type MealDetail = {
   idMeal: string;
   strMeal: string;
-  strMealAlternate: string;
+  strMealAlternate: string | null;
   strCategory: string;
   strArea: string;
-  strMealThumb: string;
   strYoutube: string | null;
-  [key: string]: any;
+  strMealThumb: string;
+  [key: `strIngredient${number}`]: string | undefined;
+  [key: `strMeasure${number}`]: string | undefined;
 };
 
 type LookupResponse = {
@@ -23,9 +24,7 @@ export default async function MealPage({ params }: Params) {
   const { id } = params;
 
   const res = await fetch(
-    `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${encodeURIComponent(
-      id
-    )}`,
+    `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${encodeURIComponent(id)}`,
     { next: { revalidate: 60 } }
   );
 
@@ -34,7 +33,7 @@ export default async function MealPage({ params }: Params) {
   const data: LookupResponse = await res.json();
 
   if (!data.meals || data.meals.length === 0) {
-    return <p>No Meal Found with ID {id}.</p>;
+    return <p className="text-center mt-10 text-red-600">No Meal Found with ID {id}.</p>;
   }
 
   const meal = data.meals[0];
@@ -44,60 +43,51 @@ export default async function MealPage({ params }: Params) {
     const ing = meal[`strIngredient${i}`];
     const meas = meal[`strMeasure${i}`];
     if (ing && ing.trim()) {
-      ingredients.push({ ingredient: ing, measure: meas });
+      ingredients.push({ ingredient: ing, measure: meas ?? "" });
     }
   }
 
   return (
-    <div>
-      <h1 className="text-center font-bold text-3xl p-4">{meal.strMeal}</h1>
-
-      <div className="flex gap-8 flex-wrap">
-        <div style={{ maxWidth: 400 }}>
-          <Image
-            src={meal.strMealThumb}
-            alt={meal.strMeal}
-            width={400}
-            height={300}
-            priority
-            style={{
-              objectFit: "cover",
-              width: "100%",
-              height: "auto",
-              borderRadius: "8px",
-            }}
-          />
-        </div>
-
-        <div>
-          <p>
-            <strong>Category:</strong> {meal.strCategory}
-          </p>
-          <p>
-            <strong>Area:</strong> {meal.strArea}
-          </p>
-
-          <h2 className="font-semibold mt-4">Ingredients</h2>
-          <ul>
-            {ingredients.map((item, idx) => (
-              <li key={idx}>
-                {item.ingredient} - {item.measure}
-              </li>
-            ))}
-          </ul>
-
-          {meal.strYoutube && (
-            <a
-              href={meal.strYoutube}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "blue", display: "inline-block", marginTop: 8 }}
-            >
-              Watch on Youtube
-            </a>
-          )}
-        </div>
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg mt-8">
+      <div className="absolute top-4 left-4 z-20">
+       
       </div>
+      <h1 className="text-4xl font-extrabold text-green-900 mb-4">{meal.strMeal}</h1>
+
+      <p className="mb-4 text-green-800 space-x-4">
+        <strong>Category:</strong> <span>{meal.strCategory}</span>
+        <strong>Area:</strong> <span>{meal.strArea}</span>
+      </p>
+
+      <div className="w-full h-72 relative rounded overflow-hidden mb-6 shadow-md">
+        <Image
+          src={meal.strMealThumb}
+          alt={meal.strMeal}
+          fill
+          style={{ objectFit: "cover", objectPosition: "center" }}
+          priority
+        />
+      </div>
+
+      <h2 className="text-2xl font-semibold text-green-900 mb-3">Ingredients</h2>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6 list-disc list-inside text-green-800">
+        {ingredients.map((item, idx) => (
+          <li key={idx}>
+            {item.ingredient} — {item.measure}
+          </li>
+        ))}
+      </ul>
+
+      {meal.strYoutube && (
+        <a
+          href={meal.strYoutube}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block text-green-900 font-semibold hover:text-green-700 transition-colors duration-200 underline"
+        >
+          ▶ Watch on YouTube
+        </a>
+      )}
     </div>
   );
 }
