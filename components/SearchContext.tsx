@@ -58,7 +58,7 @@ export function SearchProvider({children}: {children: ReactNode}){
             const data = await res.json();
             setResutls(data.meals ?? []); // nullish coalescing operator - ES2020
          } catch (err) {
-            if((err as any ).name !== 'AbortController') console.error(err);
+            if((err as Error ).name !== 'AbortController') console.error(err);
             setResutls([]);
          }finally{
             setLoading(false);
