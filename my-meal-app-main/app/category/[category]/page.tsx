@@ -11,11 +11,11 @@ type FilterResponse = {
 };
 
 type Params = {
-  params: { category: string };
+  params: Promise<{ category: string }>;
 };
 
 export default async function CategoryPage({ params }: Params) {
-  const { category } = params;
+  const { category } = await params;
 
   const res = await fetch(
     `https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(category)}`,
@@ -28,8 +28,8 @@ export default async function CategoryPage({ params }: Params) {
 
   return (
     <div>
-       <h1>Meals in {category}</h1>
-       <MealList meals={data.meals} category={category} />
+      <h1>Meals in {category}</h1>
+      <MealList meals={data.meals} category={category} />
     </div>
   );
 }
